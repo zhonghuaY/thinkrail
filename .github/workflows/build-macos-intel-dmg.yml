@@ -1,0 +1,52 @@
+name: Build macOS Intel DMG
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/build-macos-intel-dmg.yml
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: macOS Intel DMG
+    runs-on: macos-15-intel
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - name: Cache Bun packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-${{ runner.arch }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: ${{ runner.os }}-${{ runner.arch }}-bun-
+      - run: bun install --frozen-lockfile
+      - name: Build desktop app and DMG
+        run: bun run desktop:build
+      - name: Smoke packaged desktop app
+        run: |
+          launcher=$(bun -e 'import { locateDesktopLauncher } from "@thinkrail/artifact-tests"; console.log(locateDesktopLauncher("apps/desktop"));')
+          bun run smoke:desktop "$launcher"
+      - name: Collect Intel DMG
+        run: |
+          set -eu
+          count=$(find apps/desktop/artifacts -maxdepth 1 -type f -name '*macos-x64*.dmg' | wc -l | tr -d ' ')
+          [ "$count" -eq 1 ] || { echo "::error::expected one macOS x64 DMG, found $count"; find apps/desktop/artifacts -maxdepth 1 -type f -print; exit 1; }
+          dmg=$(find apps/desktop/artifacts -maxdepth 1 -type f -name '*macos-x64*.dmg')
+          cp "$dmg" thinkrail-desktop-darwin-x64.dmg
+          shasum -a 256 thinkrail-desktop-darwin-x64.dmg > thinkrail-desktop-darwin-x64.dmg.sha256
+      - name: Upload DMG
+        uses: actions/upload-artifact@v5
+        with:
+          name: thinkrail-desktop-darwin-x64
+          path: |
+            thinkrail-desktop-darwin-x64.dmg
+            thinkrail-desktop-darwin-x64.dmg.sha256
+          if-no-files-found: error
+          retention-days: 7
