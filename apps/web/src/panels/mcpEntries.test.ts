@@ -8,6 +8,7 @@ import {
 	hideMcpLiterals,
 	importIssues,
 	isConfigReference,
+	MCP_EXPOSURES,
 	MCP_HIDDEN_VALUE,
 	type McpFormDraft,
 	mcpApprovalFacts,
@@ -393,7 +394,7 @@ test("pasted JSON accepts the mcpServers wrapper or a bare map and reports per-s
 	).toEqual([
 		'"args" must be a list of strings.',
 		'"env" must map names to strings.',
-		'"exposure" must be deferred, direct or hidden.',
+		'"exposure" must be codemode, deferred, direct or hidden.',
 		'"enabled" must be true or false.',
 	]);
 	expect(mcpEntryErrors(currentTranslator(), { type: "http" })).toEqual([
@@ -503,6 +504,10 @@ test("project entries are read as written and toggled with pi's writer semantics
 		command: "x",
 		exposure: "direct",
 	});
+});
+
+test("the editable exposures cover every value, including codemode", () => {
+	expect(MCP_EXPOSURES).toEqual(["deferred", "direct", "hidden", "codemode"]);
 });
 
 test("approval facts list every !command, and env/header names with references but never a plain value", () => {

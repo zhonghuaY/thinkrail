@@ -285,6 +285,7 @@ const EXPOSURE_LABEL = {
 	deferred: "mcp.exposure.deferred",
 	direct: "mcp.exposure.direct",
 	hidden: "mcp.exposure.hidden",
+	codemode: "mcp.exposure.codemode",
 } as const satisfies Record<McpEditableExposure, MessageKey>;
 
 export function mcpExposureLabel(t: Translator, exposure: McpEditableExposure): string {
@@ -292,5 +293,5 @@ export function mcpExposureLabel(t: Translator, exposure: McpEditableExposure): 
 }
 
 export function mcpConfiguredExposureText(t: Translator, summary: McpServerSummary): string {
-	return summary.exposure === "codemode" ? t("mcp.exposure.codemodeConfigured") : summary.exposure;
+	return mcpExposureLabel(t, summary.exposure);
 }

@@ -74,7 +74,7 @@ test("summaries cover scope, approval states, replacement, folded overrides, rec
 	});
 	expect(pending["user:linear"]).toMatchObject({
 		oauth: true,
-		effectiveExposure: "deferred",
+		effectiveExposure: "codemode",
 		fingerprint: fingerprintMcpEntry("linear", {
 			url: "https://linear.example/mcp",
 			description: "Linear issues; use token=sk-live-secret",
@@ -114,6 +114,27 @@ test("summaries cover scope, approval states, replacement, folded overrides, rec
 		approval: { state: "approved" },
 	});
 	expect(approved["project:shared"]?.approval?.state).toBe("changed");
+});
+
+test("a configured codemode exposure stays codemode instead of being downgraded", () => {
+	const agentDir = join(root, "codemode-agent");
+	const cwd = join(root, "codemode-project");
+	mkdirSync(agentDir, { recursive: true });
+	mkdirSync(join(cwd, ".pi"), { recursive: true });
+	writeFileSync(
+		join(agentDir, "mcp.json"),
+		JSON.stringify({
+			mcpServers: { docs: { url: "https://docs.example/mcp", exposure: "codemode" } },
+		}),
+	);
+	const [row] = summarizeMcpServers({
+		agentDir,
+		cwd,
+		projectTrusted: true,
+		policy: { approvals: {}, overrides: {}, toolGrants: {} },
+	});
+	expect(row?.exposure).toBe("codemode");
+	expect(row?.effectiveExposure).toBe("codemode");
 });
 
 test("an entry that is not an object keeps its row, and an unreadable file is listed with its path, masked", () => {
@@ -192,7 +213,7 @@ test("folded project overrides retain validation errors regardless of approval",
 			expect(row.approval?.state).toBe(approved ? "approved" : "pending");
 			expect(row.configError).toBeTruthy();
 			expect(row.enabled).toBe(true);
-			expect(row.effectiveExposure).toBe("deferred");
+			expect(row.effectiveExposure).toBe("codemode");
 		}
 		expect(rows.find((row) => row.name === "enabled")?.configError).toBe(
 			'server "enabled": enabled must be a boolean',

@@ -299,12 +299,15 @@ test("a per-chat action reports its one chat's error as is, and names the chat w
 	);
 });
 
-test("configured codemode is labelled as treated like deferred", () => {
+test("configured exposures render their localized label, including codemode", () => {
 	expect(mcpConfiguredExposureText(currentTranslator(), summary({ exposure: "codemode" }))).toBe(
-		"codemode — treated as deferred (codemode not available yet)",
+		"Codemode",
 	);
 	expect(mcpConfiguredExposureText(currentTranslator(), summary({ exposure: "direct" }))).toBe(
-		"direct",
+		"Direct",
+	);
+	expect(mcpConfiguredExposureText(currentTranslator(), summary({ exposure: "deferred" }))).toBe(
+		"Deferred",
 	);
 	expect(formatStartingElapsed(currentTranslator(), 20_000)).toBe("<1 min");
 });

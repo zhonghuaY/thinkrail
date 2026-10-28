@@ -962,6 +962,25 @@ test("an update carries only the approval current at synchronous admission", asy
 	expect(getProjects()[0]?.mcpApprovals).toBeUndefined();
 });
 
+test("wire overrides accept codemode exposure", async () => {
+	await request("mcp.add", {
+		workspaceId: "w1",
+		scope: "user",
+		name: "docs",
+		entry: { url: "https://docs.example/mcp" },
+	});
+	const overridden = await request("mcp.setProjectOverride", {
+		workspaceId: "w1",
+		name: "docs",
+		enabled: true,
+		exposure: "codemode",
+	});
+	expect(find(overridden, "user", "docs")?.projectOverride).toEqual({
+		enabled: true,
+		exposure: "codemode",
+	});
+});
+
 test("wire overrides reject invalid enablement and exposure before changing project or session state", async () => {
 	await request("mcp.setProjectOverride", { workspaceId: "w1", name: "docs", enabled: false });
 	const projectsPath = join(root, "data", "projects.json");
@@ -982,7 +1001,7 @@ test("wire overrides reject invalid enablement and exposure before changing proj
 		).toBe("MCP_CONFIG_INVALID");
 		expect(readFileSync(projectsPath, "utf8")).toBe(before);
 	}
-	for (const exposure of ["codemode", "codemode-deferred", "DIRECT", "", true, 0, null, {}, []]) {
+	for (const exposure of ["codemode-deferred", "DIRECT", "", true, 0, null, {}, []]) {
 		expect(
 			await codeOf(
 				request("mcp.setProjectOverride", {

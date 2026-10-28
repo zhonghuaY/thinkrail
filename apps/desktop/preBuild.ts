@@ -9,7 +9,9 @@ import {
 	statSync,
 	writeFileSync,
 } from "node:fs";
+import { builtinModules, createRequire } from "node:module";
 import { basename, join, relative, resolve, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 import type { BundledExtensions } from "@thinkrail/server";
 import type { BuildRuntimeSources } from "@thinkrail/server/build-support";
 import { injectChunkId, type SourceMapJson } from "./src/runtimeSourceMap";
@@ -131,6 +133,42 @@ for (const helper of Object.values(sources.trashHelpers)) {
 	copyFileSync(helper, join(runtimeDir, basename(helper)));
 }
 if (process.platform !== "win32") chmodSync(join(runtimeDir, "macos-trash"), 0o755);
+
+// Hazard: these paths mirror pi's bundled-runtime codemode resolution; re-verify on every pi upgrade.
+const codemodeWorkerEntry = join(stageDir, "codemode-worker-entry.ts");
+writeFileSync(codemodeWorkerEntry, 'import "@earendil-works/pi-codemode/worker";\n');
+try {
+	runBun([
+		"build",
+		codemodeWorkerEntry,
+		"--target=bun",
+		`--outdir=${runtimeDir}`,
+		"--entry-naming=codemode-worker.js",
+	]);
+} finally {
+	rmSync(codemodeWorkerEntry, { force: true });
+}
+const codemodeWorkerImports = [
+	...readFileSync(join(runtimeDir, "codemode-worker.js"), "utf8").matchAll(/from\s*"([^"]+)"/g),
+].map((match) => match[1] as string);
+const invalidWorkerImports = codemodeWorkerImports.filter(
+	(specifier) => !specifier.startsWith("node:") && !builtinModules.includes(specifier),
+);
+if (invalidWorkerImports.length > 0) {
+	throw new Error(
+		`codemode worker must only import node builtins: ${invalidWorkerImports.join(", ")}`,
+	);
+}
+if (readFileSync(join(runtimeDir, "codemode-worker.js"), "utf8").includes("import.meta")) {
+	throw new Error("codemode worker must not use import.meta (it runs from a data: URL)");
+}
+const fromPiCodemode = createRequire(
+	fileURLToPath(import.meta.resolve("@earendil-works/pi-codemode/worker")),
+);
+const quickJsDir = join(runtimeDir, "node_modules", "quickjs-wasi");
+mkdirSync(quickJsDir, { recursive: true });
+copyFileSync(fromPiCodemode.resolve("quickjs-wasi/quickjs.wasm"), join(quickJsDir, "quickjs.wasm"));
+copyFileSync(fromPiCodemode.resolve("quickjs-wasi/package.json"), join(quickJsDir, "package.json"));
 
 try {
 	writeFileSync(

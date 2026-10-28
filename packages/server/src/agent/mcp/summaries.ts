@@ -98,10 +98,9 @@ export function summarizeMcpServers(options: {
 			endpoint: maskMcpEndpoint(raw),
 			effective: isEffective,
 			exposure,
-			effectiveExposure:
-				isEffective && live.config.exposure && live.config.exposure !== "codemode"
-					? live.config.exposure
-					: (projectOverride?.exposure ?? (exposure === "codemode" ? "deferred" : exposure)),
+			effectiveExposure: isEffective
+				? (live.config.exposure ?? "codemode")
+				: (projectOverride?.exposure ?? exposure),
 			enabled: isEffective ? live.config.enabled !== false : raw.enabled !== false,
 			...(typeof raw.description === "string"
 				? { description: redactMcpText(raw.description) }

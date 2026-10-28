@@ -541,6 +541,11 @@ test("MCP approvals and per-project overrides persist in the project record and 
 		context7: { enabled: false },
 		sentry: { exposure: "direct" },
 	});
+	setProjectMcpOverride(project.id, "context7", { exposure: "codemode" });
+	expect(setProjectMcpOverride(project.id, "context7", {}).mcpOverrides?.context7).toEqual({
+		enabled: false,
+		exposure: "codemode",
+	});
 	setProjectMcpOverride(project.id, "context7", { exposure: "hidden" });
 	expect(setProjectMcpOverride(project.id, "context7", {}).mcpOverrides?.context7).toEqual({
 		enabled: false,

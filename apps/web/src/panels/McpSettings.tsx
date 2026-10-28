@@ -534,11 +534,6 @@ function ExposureMenu({
 						</DropdownMenuRadioItem>
 					))}
 				</DropdownMenuRadioGroup>
-				{summary.exposure === "codemode" ? (
-					<p className="px-8 py-4 text-text-muted tr-text-metadata">
-						{t("mcp.exposure.codemodeNote")}
-					</p>
-				) : null}
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);

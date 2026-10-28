@@ -237,13 +237,14 @@ export function setProjectMcpOverride(
 		}
 		if (
 			patch.exposure !== undefined &&
+			patch.exposure !== "codemode" &&
 			patch.exposure !== "deferred" &&
 			patch.exposure !== "direct" &&
 			patch.exposure !== "hidden"
 		) {
 			throw new CodedError(
 				"MCP_CONFIG_INVALID",
-				"MCP server exposure must be deferred, direct or hidden",
+				"MCP server exposure must be codemode, deferred, direct or hidden",
 			);
 		}
 	}

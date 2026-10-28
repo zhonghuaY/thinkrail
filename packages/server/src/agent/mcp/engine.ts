@@ -1,4 +1,5 @@
 import {
+	createCodemodeExtension,
 	createMcpExtension,
 	createToolSearchExtension,
 	type ExtensionAPI,
@@ -133,6 +134,12 @@ export function createMcpEngine(options: {
 				replaceable: true,
 				builtin: true,
 				factory: createToolSearchExtension(),
+			},
+			{
+				name: "codemode",
+				replaceable: true,
+				builtin: true,
+				factory: createCodemodeExtension(),
 			},
 		],
 		shutdown: (event, ctx) => shutdown(event, ctx),

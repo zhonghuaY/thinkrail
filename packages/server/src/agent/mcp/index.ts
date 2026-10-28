@@ -11,7 +11,6 @@ export {
 	mcpNamespace,
 	mcpPolicyOf,
 	mcpToolLabel,
-	normalizeExposureForHost,
 	projectMcpConfigPath,
 	validateMcpServerConfig,
 } from "./config";

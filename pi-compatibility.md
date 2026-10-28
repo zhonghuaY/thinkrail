@@ -26,8 +26,7 @@ was checked against the installed catalog version. **No removal gate is satisfie
   tests cover both scopes, approved overrides, malformed occupied names and refused-write preservation.
 - `AgentSession.dispose()` still does not emit extension shutdown; reload dispatch is sequential,
   and MCP clears its server list before awaiting closure. Keep ordered cleanup and late-start admission.
-  Codemode still needs a worker/WASM artifact surface we do not package. Raw `structuredContent` is
-  still ephemeral, not a bounded durable transcript presentation.
+  Raw `structuredContent` is still ephemeral, not a bounded durable transcript presentation.
 - Delivered queue removal and `clearQueue()` remain text-only. SDK creation still does not initialize
   a headless terminal theme. Extension loading still needs Jiti/virtual-module adaptation in artifacts,
   static OAuth/Bedrock registration and the image-resize override. Artifact probes also exercise a
@@ -106,14 +105,6 @@ and `AgentSession.reload` hooks, not just idempotence; run `sessionShutdown.test
 and MCP delete/reload/process-lifetime regressions, including a stubborn old PID and a startup dispatch
 paused through closure with async `resources_discover`.
 `AgentSessionRuntime.dispose()` alone is not evidence that these host obligations disappeared.
-
-### Exposure while codemode is not packaged
-
-**Owner:** [[submodule-server-agent-mcp]], `normalizeExposureForHost` and tool-search activation.
-File-configured `codemode` exposure becomes `deferred`; registered servers stay reachable through
-`tool_search`. **Removal gate:** ship pi's codemode worker/WASM across CLI and desktop, then preserve
-native exposure without normalization. Run config/exposure tests and the shared artifact probes;
-public factory availability alone does not establish packaging support.
 
 ### Durable presentation details
 

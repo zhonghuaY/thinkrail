@@ -241,7 +241,7 @@ export function mcpSetProjectOverride(params: {
 	workspaceId: string;
 	name: string;
 	enabled?: boolean;
-	exposure?: Exclude<McpExposure, "codemode">;
+	exposure?: McpExposure;
 }): Promise<McpListResult> {
 	const name = serverName(params.name);
 	return mutateManaged(params.workspaceId, ({ project }) => {

@@ -121,7 +121,7 @@ push Bun's `// @bun` pragma off line 1, so the registration statement becomes li
 one line. The chunk id is a UUID hashed from the release, the code **and** its map: Bun emits
 byte-identical JS for a different checkout path (the generated entry's absolute imports live only in
 `sourcesContent`) or a comment-only source change, and posthog-cli's symbol-set upload fails on an
-existing chunk id with different content. `preBuild` also refuses to stage web `.map` files.
+existing chunk id with different content. `preBuild` also refuses to stage web `.map` files. It also builds pi's codemode QuickJS worker (`@earendil-works/pi-codemode/worker`, imports restricted to node builtins) and stages it with `quickjs-wasi/quickjs.wasm` beside the server runtime — the two paths pi's bundled-runtime codemode resolution expects — so the packaged app runs codemode scripts exactly like pi's CLI.
 
 Handled native-shell failures that carry an error (keyboard state, title-bar double-click, update
 listener/lifecycle/journal, native-label writes, leaving the bundle working directory, Windows frame restore,

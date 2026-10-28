@@ -19,6 +19,7 @@
 	},
 	"devDependencies": {
 		"@types/bun": "catalog:",
+		"@earendil-works/pi-codemode": "catalog:",
 		"electrobun": "2.0.5",
 		"resedit": "catalog:",
 		"typescript": "catalog:"

@@ -383,21 +383,6 @@ export function grantedMcpTools(
 	return grant && grant.target === mcpTargetOf(config) ? grant.tools : [];
 }
 
-export function normalizeExposureForHost(config: McpServerConfig): McpServerConfig {
-	const normalized: McpServerConfig = { ...config };
-	if (config.exposure === undefined || config.exposure === "codemode")
-		normalized.exposure = "deferred";
-	if (config.toolExposure) {
-		normalized.toolExposure = Object.fromEntries(
-			Object.entries(config.toolExposure).map(([tool, exposure]) => [
-				tool,
-				exposure === "codemode" ? "deferred" : exposure,
-			]),
-		);
-	}
-	return normalized;
-}
-
 export interface McpProjectPolicy {
 	approvals: Readonly<Record<string, string>>;
 	overrides: Readonly<Record<string, McpProjectOverride>>;
@@ -439,7 +424,7 @@ export function loadHostMcpConfig(options: {
 		if (override?.enabled !== undefined) config.enabled = override.enabled;
 		if (override?.exposure !== undefined) config.exposure = override.exposure;
 		if (disabledInChat?.has(server.name)) config.enabled = false;
-		return { ...server, config: normalizeExposureForHost(config) };
+		return { ...server, config };
 	});
 	return { ...loaded, servers };
 }

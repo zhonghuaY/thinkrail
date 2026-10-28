@@ -1041,7 +1041,7 @@ export interface WsMethodMap {
 			workspaceId: string;
 			name: string;
 			enabled?: boolean;
-			exposure?: Exclude<McpExposure, "codemode">;
+			exposure?: McpExposure;
 		};
 		result: McpListResult;
 	};

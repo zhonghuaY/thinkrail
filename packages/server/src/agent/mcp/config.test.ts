@@ -24,10 +24,8 @@ import {
 	loadHostMcpConfig,
 	loadMcpConfigFiles,
 	McpConfigPathUnsafeError,
-	normalizeExposureForHost,
 	removeMcpServerConfig,
 	updateMcpServerConfig,
-	validateMcpServerConfig,
 } from "./index";
 
 const piDist = dirname(fileURLToPath(import.meta.resolve("@earendil-works/pi-coding-agent")));
@@ -250,21 +248,6 @@ test("fingerprints cover the whole entry object, keep toolExposure order semanti
 	expect(fingerprintMcpEntry("srv", { ...base, env: { B: "!cmd", A: `\${A}` } })).toBe(fp);
 });
 
-test("host exposure normalization maps codemode and unset to deferred without touching other values", () => {
-	const config = validateMcpServerConfig("s", {
-		url: "https://x/mcp",
-		toolExposure: { a: "codemode", b: "direct", c: "hidden" },
-	});
-	if (typeof config === "string") throw new Error(config);
-	expect(normalizeExposureForHost(config)).toMatchObject({
-		exposure: "deferred",
-		toolExposure: { a: "deferred", b: "direct", c: "hidden" },
-	});
-	const direct = validateMcpServerConfig("s", { url: "https://x/mcp", exposure: "direct" });
-	if (typeof direct === "string") throw new Error(direct);
-	expect(normalizeExposureForHost(direct).exposure).toBe("direct");
-});
-
 test("the host loader admits repo entries only at their approved fingerprint and layers the record over user servers", () => {
 	const repoServer = { command: "npx", args: ["-y", "repo-server"] };
 	const repoOverride = { exposure: "direct" };
@@ -299,7 +282,7 @@ test("the host loader admits repo entries only at their approved fingerprint and
 
 	const pending = byName(load({}));
 	expect(Object.keys(pending).sort()).toEqual(["docs", "linear", "quiet"]);
-	expect(pending.linear?.config.exposure).toBe("deferred");
+	expect(pending.linear?.config.exposure).toBe("codemode");
 	expect(pending.linear?.override).toBeUndefined();
 	expect(pending.docs?.config.enabled).toBe(false);
 	expect(pending.quiet?.config.exposure).toBe("hidden");
@@ -311,7 +294,7 @@ test("the host loader admits repo entries only at their approved fingerprint and
 	const approved = byName(load(approvals, new Set(["quiet"])));
 	expect(approved.repo?.scope).toBe("project");
 	expect(approved.repo?.config.enabled).toBeUndefined();
-	expect(approved.repo?.config.exposure).toBe("deferred");
+	expect(approved.repo?.config.exposure).toBeUndefined();
 	expect(approved.linear?.config.exposure).toBe("direct");
 	expect(approved.quiet?.config.enabled).toBe(false);
 

@@ -12,7 +12,7 @@ tags: [mcp, pi]
 
 What ThinkRail owns around pi's built-in MCP: at the configuration layer, reading the two `mcp.json`
 files exactly as pi does, editing them safely from a long-lived multi-client process, and the two
-host-only derivations — the exposure normalization that stands in for codemode, and the per-entry
+host-only derivations — layering the project record's overrides onto the loaded config, and the per-entry
 fingerprint behind repo-server approvals; at the session layer, the per-session host extension that
 guards calls and the per-server lock that keeps two sign-ins for one server from running at once; and
 reading one server's lines from pi's shared MCP log. The engine (connections, OAuth, tools) stays pi's;
@@ -115,15 +115,14 @@ without bypassing approvals or treating an occupied name as absent.
   project-file entries (servers and override-only entries alike) are admitted only when the project
   record's `mcpApprovals[name]` equals their current fingerprint (an unapproved override leaves the global
   server as configured), the record's `mcpOverrides` set `enabled` / `exposure` of user-level servers, an
-  optional chat-local disabled set wins over both, and exposure is normalized; `loadMcpConfigFiles()`
+  optional chat-local disabled set wins over both; `loadMcpConfigFiles()`
   (with the optional `admitProjectEntry` predicate it is built on) returns pi's `LoadedMcpConfig`
   **and** `entries` (every named `mcpServers` value as written — objects and invalid values alike — with
   file, scope and whether it is an override) because pi's merged result loses project provenance, **and**
   `fileErrors` (the file-level subset of `errors`, split into path and message);
   `fingerprintMcpEntry(name, raw)` = SHA-256 over the name and the canonical JSON of the whole raw entry (keys sorted recursively except
-  `toolExposure`, whose order is semantic) — never over resolved values; `normalizeExposureForHost()` maps
-  unset and `codemode` exposures (server and per-tool) to `deferred` in memory while codemode is not
-  shipped. `mcpPolicyOf(project)` reads that policy (approvals, overrides, tool grants) off a project
+  `toolExposure`, whose order is semantic) — never over resolved values; `mcpPolicyOf(project)` reads that
+  policy (approvals, overrides, tool grants) off a project
   record (absent fields read as empty); `mcpTargetOf` / `grantedMcpTools` / `mcpToolLabel` (the tool name
   without `mcp__<server>__`) back the tool grants.
 - `sessionHost.ts` — `createMcpSessionHost({ policy, onCommandSettled?, askForToolCall, grantTool })`,
@@ -163,14 +162,14 @@ without bypassing approvals or treating an occupied name as absent.
   this host owns no second failure marker. The optional command-completion callback is supplied by the
   session manager; this child module never imports the status coordinator.
 - `engine.ts` — `createMcpEngine({ loadConfig, lockSignIns?, openUrl?, onCommandSettled? })` →
-  `{ extensions, shutdown }`: pi's two built-in descriptors (`mcp` = `createMcpExtension`, `tool-search`),
+  `{ extensions, shutdown }`: pi's three built-in descriptors (`mcp` = `createMcpExtension`,
+  `tool-search`, `codemode`),
   `replaceable: true, builtin: true` exactly like pi's CLI. Optional host callbacks deliver Settings
   authorization URLs through `openUrl` and invalidate status after mutating commands. Ordinary chats
   never open a browser on the host. The `mcp` factory first registers its own
   `session_start` / `mcp_servers_change` handlers that activate `tool_search` whenever
   `pi.getMcpServers()` is non-empty, so they run before pi's reachability check: extension-registered
-  servers bypass the loader's normalization (pi defaults them to codemode, which is not shipped) and
-  `tool_search` reaches them. Living inside the replaceable built-in, the activation disappears with it when
+  servers bypass the host loader (pi defaults them to codemode) and `tool_search` reaches them. Living inside the replaceable built-in, the activation disappears with it when
   another extension owns MCP, and handling `mcp_servers_change` there does not distort pi's "nobody
   connects registered servers" report. The `mcp` factory hands pi a `Proxy` of the `ExtensionAPI`; every
   member but two is forwarded with `Reflect.get` (pi's API object is never spread, so nothing is read
