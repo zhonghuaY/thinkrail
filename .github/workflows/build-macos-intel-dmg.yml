@@ -31,17 +31,17 @@ jobs:
       - run: bun install --frozen-lockfile
       - name: Build desktop app and DMG
         run: bun run desktop:package:stable
-      - name: Smoke packaged desktop app
+      - name: Smoke DMG installer
         run: |
           set -eu
           build_dir=apps/desktop/build/stable-macos-x64
-          set -- "$build_dir"/*.app/Contents/MacOS/launcher
-          if [ "$#" -ne 1 ] || [ ! -x "$1" ]; then
-            echo "::error::expected exactly one packaged launcher"
-            find "$build_dir" -maxdepth 4 -type f -print
+          set -- "$build_dir"/*.dmg
+          if [ "$#" -ne 1 ] || [ ! -f "$1" ]; then
+            echo "::error::expected exactly one macOS x64 DMG"
+            find "$build_dir" -maxdepth 3 -type f -print
             exit 1
           fi
-          bun run smoke:desktop "$1"
+          bun run smoke:desktop:installer "$1" stable
       - name: Collect Intel DMG
         run: |
           set -eu
